@@ -1,12 +1,26 @@
 package _6_test_260120.ex;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class _3_MainClass {
+
+    // 260120_실습4_풀이_업그레이드_임시저장파일_추가, 순서1
+    // 우리가 저장할 파일의 이름 미리 지정
+    private static final String FILE_NAME = "members.txt";
+
     public static void main(String[] args) {
         //최대 5명까지 저장 가능한 배열 생성.
         _3_MemberBase[] members = new _3_MemberBase[5];
         int count = 0; // 현재 저장된 회원 수 (배열 인덱스 관리용)
+
+        // 260120_실습4_풀이_로그인한_유저_표기추가, 순서1
+        // 현재 로그인한 회원을 저장할 변수 (초기갓 null)
+        // 로그인 후, 로그인한 유저로 값을 채울 예정.
+        _3_MemberBase loggedInMember = null;
 
         //  콘솔에 입력 내용 불러오는 도구.
         Scanner sc = new Scanner(System.in);
@@ -14,6 +28,15 @@ public class _3_MainClass {
         // 메뉴 반복문 이용해서 그려보기.
         while (true) {
             System.out.println("\n=============회원 관리 시스템 ver 1.0=======");
+
+            // 260120_실습4_풀이_로그인한_유저_표기추가, 순서2
+            // 로그인한 유저가 있다면, 여기에 화면에 표시하기.
+            if(loggedInMember != null) {
+                System.out.println("-------------------------------------------");
+                System.out.println("로그인 한 유저 : " + loggedInMember.getEmail());
+                System.out.println("-------------------------------------------");
+            }
+
             // 260120_실습4_풀이, 순서1, 메뉴 변경,
             // System.out.println("1. 회원가입 2. 목록조회 3. 종료");
             System.out.println("1. 회원가입 2. 목록조회 3. 로그인 4. 종료");
@@ -117,7 +140,11 @@ public class _3_MainClass {
                         ) {
                             System.out.println("로그인 성공!! 환영합니다.~" + member.name+ "님");
                             isLogin = true;
-//                            break;
+
+                            // 260120_실습4_풀이_로그인한_유저_표기추가, 순서3
+                            // 로그인 성공시 해당 로그인한 객체를 변수에 저장.
+                            loggedInMember = member;
+                            break;
                         } // if 닫기
                     } // for 닫기.
 
@@ -125,6 +152,7 @@ public class _3_MainClass {
                     if(!isLogin) {
                         System.out.println("로그인 실패: 정보가 일치하지 않습니다. ");
                     }
+                    break;
 
                 // 260120_실습4_풀이, 순서9, 숫자만 변경, 기존 3에서, 4로 변경.
                 //종료
@@ -143,4 +171,46 @@ public class _3_MainClass {
         }//while 닫기
 
     } // main 닫기
+
+// 260120_실습4_풀이_업그레이드_임시저장파일_추가, 순서2
+//    1) 저장하는 기능의 메서드 만들기, 정적(static)
+    // 준비물 : 1) 메모리상에 저장된 멤버들의 배열 members , 2) 가입된 인원수 count
+    public static void saveMembers(_3_MemberBase[] members, int count){
+        // BufferedWriter : 버퍼를 사용해 파일 쓰기 속도를 높여줍니다.
+        BufferedWriter bw = null;
+
+        // try ~ catch ~ finally, 1) 파일 입출력 2) 네트워크 통신이럴 경우, 반드시 의무적으로
+        // try 구문안에 작성해야함.
+        try {
+            // 스트림 생성.
+            // new FileWriter(FILE_NAME) : 우리가 지정한 파일에 쓰겠다. 기록 하겠다.
+            // new BufferedWriter (여기 ) : "여기"라는 내용을 좀더 빠르게 쓰겠다.
+            bw = new BufferedWriter(new FileWriter(FILE_NAME));
+
+            // members[i] 배열이고, 메모리상에 저장된 멤버들
+            // 반복문을 이용해서, 메모리상에 저장된 멤버들을, members.txt 파일에 기록하는 과정.
+            for(int i = 0; i < count; i++) {
+                _6_test_260120.ex._3_MemberBase m = members[i];
+                // 파일에 저장 형식 : 이름,이메일,패스워드,나이 (구분자: 쉼표로 구분, csv)
+                // 기존 _3_MemberBase 클래스, 이메일과, 패스워드 만 읽을수 있는데,
+                // 여기서, 추가로, 이름, 나이도 같이 조회하게 기능 추가.
+                // _3_MemberBase 클래스 이동해서, getter 생성, 이름과, 나이 추가.
+
+                String line = m.getName()+","+m.getEmail()+","+m.getPassword()+","+m.getAge();
+                // 파일에 한줄씩 기록 하겠다.
+                bw.write(line);
+                bw.newLine(); // 줄바꿈 함.
+            }
+            System.out.println("파일 저장 완료 " + FILE_NAME);
+
+        } catch (IOException e){
+            System.out.println("오류가 발생 했습니다. 원인: " + e.getMessage());
+        }finally {
+
+        }
+    }
+
+// 260120_실습4_풀이_업그레이드_임시저장파일_추가, 순서3
+//    2) 불러오는 기능의 메서드 만들기, 정적(static)
+
 }// _3_MainClass 닫기

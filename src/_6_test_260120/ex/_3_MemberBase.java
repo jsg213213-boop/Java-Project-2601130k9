@@ -30,4 +30,15 @@ public abstract class _3_MemberBase {
     public String getPassword() {
         return password;
     }
+
+    // 260120_실습4_풀이_업그레이드_임시저장파일_추가, 순서2-1
+    // 생성시, 우클릭 -> 생성 -> Getter -> 각각, 하나씩, name, age 선택.
+
+    public String getName() {
+        return name;
+    }
+    // 260120_실습4_풀이_업그레이드_임시저장파일_추가, 순서2-2
+    public int getAge() {
+        return age;
+    }
 }
