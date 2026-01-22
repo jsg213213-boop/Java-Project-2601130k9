@@ -167,17 +167,31 @@ public class _3_MainClass {
                             System.out.println("새로운 나이 입력:");
                             // 입력중에 실수로, 숫자가 아닌 다른 문자를 입력 할수도 있는 가능성 있다.
                             //그래서, try catch 사용해서, 예외 처리를 한다.
-                            String newAge = sc.nextLine();
-                            // 문자열 -> 숫자 변환 :
-                            int newAge2= Integer.parseInt(newAge);
-                            loggedInMember.setAge(newAge2);
-                            isUpdated = true;
+                            try {
+                                String newAge = sc.nextLine();
+                                // 문자열 -> 숫자 변환 :
+                                // 정상 : "30", 잘못된 입력: "삼십"
+                                int newAge2= Integer.parseInt(newAge);
+                                loggedInMember.setAge(newAge2);
+                                isUpdated = true;
+                            }catch (Exception e){
+                                System.out.println("잘못된 나이 입력입니다.");
+                            }
+
                             break;
                         case "4":
-                            System.out.println("취소");
+                            System.out.println("수정 취소");
                         default:
                             System.out.println("잘못된 입력입니다.");
                     }
+
+                    // 260122_기능추가_수정_순서5
+                    // 변경된 내용을 파일 쓰는 작업.
+                    //
+                    if(isUpdated){
+                        saveMembers(members);
+                    }
+                    break;
 
                 // 260122_기능추가_수정_순서3-2
                 case 5:
