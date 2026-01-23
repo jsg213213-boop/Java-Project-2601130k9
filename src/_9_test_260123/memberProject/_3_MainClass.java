@@ -2,10 +2,11 @@ package _9_test_260123.memberProject;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 // 260123_화면_스윙_변경__순서1
 // 해당 클래스가, JFrame 관련 그리기 도구를 사용하기 위해서, 상속.
@@ -62,6 +63,7 @@ public class _3_MainClass extends JFrame {
         // 화면 중앙 배치
         setLocationRelativeTo(null);
     } // _3_MainClass()생성자 닫기.
+
 
         // 260123_화면_스윙_변경__순서5
         //[GUI 변경] UI 화면 구성 메서드
@@ -129,248 +131,70 @@ public class _3_MainClass extends JFrame {
 
             // 260123_화면_스윙_변경__순서5-9
             // 버튼들의 초기 상태 결정. 임시 메서드 설정,
-            updateButtonState();
+//            updateButtonState();
         }
 
-        Scanner sc = new Scanner(System.in);
+    // 260123_화면_스윙_변경__순서6
+        //[GUI 변경] 버튼 클릭 이벤트 처리하는 내부 클래스 정의,
+    private class ActionHandler implements ActionListener {
 
-        while (true) {
-            // 260122_기능추가_수정_순서2-1
-            System.out.println("\n=============회원 관리 시스템 ver 2.2(검색기능추가)=======");
-            if(loggedInMember != null) {
-                System.out.println("-------------------------------------------");
-                System.out.println("로그인 한 유저 : " + loggedInMember.getEmail());
-                System.out.println("-------------------------------------------");
-                // 260122_기능추가_수정_순서2-2
-                // 260122_기능추가_검색_순서1
-                System.out.println("1. 회원가입 2. 목록조회 3. 로그아웃 4. 회원수정  5. 회원검색 6. 종료");
-            } else {
-                // 260122_기능추가_수정_순서2-3
-                // 260122_기능추가_검색_순서2
-                System.out.println("1. 회원가입 2. 목록조회 3. 로그인 4. 회원수정 5. 회원검색 6. 종료");
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            // 버튼이 많아요, 각 버튼의 모양에 따라서, 각 기능을 붙이기.
+            // 기존: 콘솔에서, 입력된 내용을 가져와서 사용. 가져오는 방법 다 동일.
+            // 변경: 화면에서, 입력된 내용을 가져와서 사용. 가져오는 방법 다름.
+
+            // 입력 대상이 무엇인지 분별하기. 클릭 하는 버튼 요소를 분별하기.
+            // Object: 모든 클래스의 부모다, 최종 클래스, 끝판대장.
+            Object source = e.getSource();
+
+            // 클릭 한 요소를 일단, 다 받을수 있는 Object 받아두고,
+            // 그리고, 각 요소가 무엇인지 정확히 분기.
+            if (source == btnJoin) {
+                // 아직 기능은 미구현, 메서드 명만 표기.
+//                handleJoin();
+            } else if (source == btnList) {
+                handleList();
+            } else if (source == btnLoginLogout) {
+//                handleLoginLogout();
+            } else if (source == btnEdit) {
+//                handleEdit();
+            } else if (source == btnSearch) {
+//                handleSearch();
+            } else if (source == btnExit) {
+//                handleExit();
             }
-            System.out.println("메뉴 선택 >>");
+        } //actionPerformed 닫기
+    } //ActionHandler 닫기
 
-            int choice;
-            try {
-                choice = Integer.parseInt(sc.nextLine());
-            } catch (NumberFormatException e) {
-                System.out.println("숫자만 입력해주세요.");
-                continue;
+    // 260123_화면_스윙_변경__순서7
+    // 기능 하나씩 구현해보기.
+    //로그 출력 헬퍼
+    private void printLog(String msg) {
+        displyArea.append(msg + "\n");
+        // 스크롤 하단 이동 기능.
+        displyArea.setCaretPosition(displyArea.getDocument().getLength());
+    }
+
+    // 2. 목록조회
+    private void handleList() {
+        displyArea.setText(""); // 최초에 항상 기존 내용 다지우고, 새로 불러오는 형식.
+        printLog("===회원 목록====");
+        if(members.isEmpty()) {
+            printLog("가입된 회원이 없습니다.");
+        } else {
+            // 기존에서 사용하던 Map 순회에서, 출력.
+            for(_3_MemberBase member : members.values()) {
+                String info = String.format("이름 : %s | 이메일 : %s | 나이 : %d",
+                       member.getName(), member.getEmail(), member.getAge() );
+                printLog(info);
             }
+        }
+    }
 
-            switch (choice) {
-                case 1: // 회원 가입.
 
-                    System.out.println("이름: ");
-                    String name = sc.nextLine();
 
-                    System.out.println("이메일: ");
-                    String email = sc.nextLine();
 
-                    if(members.containsKey(email)) {
-                        System.out.println("이미 가입된 이메일입니다.");
-                        break;
-                    }
-                    System.out.println("패스워드: ");
-                    String password = sc.nextLine();
-
-                    System.out.println("나이: ");
-                    int age = Integer.parseInt(sc.nextLine());
-
-                    _3_NormalMember newMember = new _3_NormalMember(name, email, password, age);
-                    members.put(email, newMember);
-                    newMember.join();
-                    saveMembers(members);
-                    break;
-
-                case 2:
-                    if (members.isEmpty()) {
-                        System.out.println("가입된 회원이 없습니다. ");
-                    } else {
-                        for (_3_MemberBase member: members.values()) {
-                            // 260121_업그레이드_ArrayList에서_HashMap으로_변경, 순서4-3
-//                            members.get(i).showInfo();
-                            member.showInfo();
-                        }
-                    }
-                    break;
-                case 3:
-                    if(loggedInMember != null) { // 로그인 된 상태
-                        loggedInMember = null; // 로그인 정보 초기화
-                        System.out.println("로그아웃 되었습니다.");
-                    } else {// 로그인 안된 상태
-                        System.out.println("\n====로그인===== ");
-                        System.out.println("이메일 : ");
-                        String inputEmail = sc.nextLine();
-
-                        System.out.println("패스워드 : ");
-                        String inputPassword = sc.nextLine();
-                        boolean isLogin = false;
-
-                        if(members.containsKey(inputEmail)) {
-                            // 로그인시, 입력한 이메일 정보가, Map 들어가 있다면, 로직 실행.
-                            _3_MemberBase member = members.get(inputEmail);
-
-                            if(member.getEmail().equals(inputEmail) &&
-                                    member.getPassword().equals(inputPassword)
-                            ) {
-                                System.out.println("로그인 성공!! 환영합니다.~" + member.name+ "님");
-                                isLogin = true;
-                                loggedInMember = member;
-//                                break;
-                            } // if 닫기
-                            else { // 비밀번호가 틀린 경우
-                                System.out.println("패스워드가 틀렸습니다.");
-
-                            }
-                        } // for 닫기. -> if 닫기 변경.
-                        // 260121_기능추가_로그아웃, 순서3
-                        else {
-                            // 이메일이 존재하지 않는 경우
-                            System.out.println("존재하지 않는 이메일입니다. ");
-                        }
-                    }
-                    break;
-                // 260122_기능추가_수정_순서3
-                case 4:
-                    // 회원 수정 기능 추가
-                    // 260122_기능추가_수정_순서4
-                    // 회원 수정은 로그인 했을 경우만 수정하기.
-                    // 로그인이 안된 경우
-                    if(loggedInMember == null) { // 기본 유효성 체크.
-                        System.out.println("로그인 이후에 수정 할 수 있습니다.");
-                        break;
-                    }
-                    // 로그인이 된 경우.
-
-                    // 260122_기능추가_수정_순서4-2
-                    // 화면 구성, 콘솔로하고 있음. 임시로
-                    System.out.println("\n====회원 정보 수정=====");
-                    System.out.println("수정할 항목을 선택하세요.");
-                    System.out.println("1. 비밀번호 2. 이름 3. 나이 4. 취소 ");
-                    System.out.println("입력>>");
-
-                    // 260122_기능추가_수정_순서4-3
-                    // 콘솔에서 입력한 숫자를 , 넘어올 때, 문자열로 넘어옴. 참고.!!!
-                    String choiceNumber = sc.nextLine();
-
-                    // 260122_기능추가_수정_순서4-3
-                    // 수정 여부를 체크할 상태변수 사용.
-                    boolean isUpdated = false;
-
-                    // 260122_기능추가_수정_순서4-4
-                    
-                    switch (choiceNumber) {
-                        // 입력 받은 숫자가 문자열 타입이므로, "1" ,"2","3","4" 표기한다.
-                        case "1":
-                            System.out.println("새로운 비밀번호 입력: ");
-                            String newPassword = sc.nextLine();
-                            // 새로운 패스워드, 기존 로그인한 회원 객체에서,
-                            // 패스워드 변경하는 세터 메서드를 이용해서, 변경.
-                            // setPassword
-                            // loggedInMember , 로그인한 유저 정보를 가지고 있는 객체(인스턴스)
-                            // 객체 점을 찍고 사용 -> ex) loggedInMember.setPassword(변경할 내용)
-                            loggedInMember.setPassword(newPassword);
-                            // 변경 했으니, 상태 변수를 변경.
-                            isUpdated = true;
-                            break;
-                        case "2":
-                            System.out.println("새로운 이름 입력:");
-                            String newName = sc.nextLine();
-                            loggedInMember.setName(newName);
-                            isUpdated = true;
-                            break;
-                        case "3":
-                            System.out.println("새로운 나이 입력:");
-                            // 입력중에 실수로, 숫자가 아닌 다른 문자를 입력 할수도 있는 가능성 있다.
-                            //그래서, try catch 사용해서, 예외 처리를 한다.
-                            try {
-                                String newAge = sc.nextLine();
-                                // 문자열 -> 숫자 변환 :
-                                // 정상 : "30", 잘못된 입력: "삼십"
-                                int newAge2= Integer.parseInt(newAge);
-                                loggedInMember.setAge(newAge2);
-                                isUpdated = true;
-                            }catch (Exception e){
-                                System.out.println("잘못된 나이 입력입니다.");
-                            }
-
-                            break;
-                        case "4":
-                            System.out.println("수정 취소");
-                            break;
-                        default:
-                            System.out.println("잘못된 입력입니다.");
-                    }
-
-                    // 260122_기능추가_수정_순서5
-                    // 변경된 내용을 파일 쓰는 작업.
-                    //
-                    if(isUpdated){
-                        saveMembers(members);
-                    }
-                    break;
-
-                // 260122_기능추가_검색_순서3
-                case 5:
-                    System.out.println("\n===회원 검색====");
-                    System.out.println("1. 이메일(ID)로 검색 정확히 일치");
-                    System.out.println("2. 이름으로 검색 (포함된 이름)");
-                    System.out.println("번호 선택 >>");
-
-                    String searchType = sc.nextLine();
-
-                    if(searchType.equals("1")) {
-                        // 이메일로 검색
-                        // HashMap key로 바로 검색 가능.
-                        System.out.println("검색할 이메일 입력 : ");
-                        String searchEmail = sc.nextLine();
-
-                        if(members.containsKey(searchEmail)) {
-                            System.out.println("\n 검색 결과");
-                            members.get(searchEmail).showInfo();
-                        } else {
-                            System.out.println("해당 이메일의 회원이 업습니다.");
-                        }
-
-                    } else if (searchType.equals("2")) {
-                        // 이름으로 검색.
-                        System.out.println("검색할 이름 입력:" );
-                        String searchName= sc.nextLine();
-
-                        // 상태변수, 검색 되었는지 여부
-                        boolean isFound = false;
-                        System.out.println("검색중....");
-
-                        for(_3_MemberBase m: members.values()) {
-                            if(m.getName().contains(searchName)) {
-                                m.showInfo();
-                                isFound = true;
-                            }
-                        } // for 닫기
-                        // 없을 경우.
-                        if(!isFound) {
-                            System.out.println("회원을 찾을 수 없습니다. ");
-                        }
-
-                    } else {
-                        System.out.println("잘못된 선택입니다.");
-                    }
-                    break;
-
-                    // 260122_기능추가_수정_순서3-2
-                // 260122_기능추가_검색_순서3-2
-                case 6:
-                    System.out.println("프로그램을 종료합니다. ");
-                    // 스캐너 자원 반납
-                    sc.close();
-                    return; // 메인 메서드 종료
-                default:
-                    System.out.println("잘못된 입력입니다. 다시 선택해주세요.");
-            } //switch 닫기
-        }//while 닫기
-    } // main 닫기
     public static void saveMembers(Map<String, _3_MemberBase> members){
         BufferedWriter bw = null;
         try {
