@@ -31,7 +31,7 @@ public class MemberDAO {
     // insert 예시코드 이용.
 
     // 260127_데이터베이스버전_전환_작업_순서4-2
-    public void insertMember(MemberDTO member) {
+    public int insertMember(MemberDTO member) {
         // 연습용, 직접 email, password, name, age
 //    public static void insertMember(String name, String email, String password, int age) {
         // 순서2, 작업할 sql 문장을 만들어야 함.
@@ -56,10 +56,12 @@ public class MemberDAO {
             // 순서6, 실행하기.
             int result = pstmt.executeUpdate(); // 성공한 행의 개수 리턴
             System.out.println(result + "행이 추가되었습니다.");
-
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
+            return 0;
         }
+
     }
 
     // 260127_데이터베이스버전_전환_작업_순서5
@@ -100,9 +102,13 @@ public class MemberDAO {
     // 260127_데이터베이스버전_전환_작업_순서6
     // 내정보조회
     // 260127_데이터베이스버전_전환_작업_순서6-2
-    public void searchMember(String email) {
+    // 260127_데이터베이스버전_전환_작업_순서11-3, 기존 메서드 변경하기. 반환을 멤버의 객체로 받기.
+    public MemberDTO getMember(String email) {
         //순서3, 조회할 sql 구문 작성,
         String sql = "SELECT * FROM members WHERE email = ?";
+
+        // 260127_데이터베이스버전_전환_작업_순서11-4
+        MemberDTO dto = null ; //못찾으면 null 반환
 
         // 회원 추가 기능에서, 같은 코드 재사용.
         // 순서4, try with resources 구문에, 연결 객체 도구를 이용하고,
@@ -125,10 +131,19 @@ public class MemberDAO {
             //  ResultSet rs  : 테이블 구조 형식.
             if (rs.next()) { // 포인터를 다음 행으로 이동, 데이터가 있으면 true
                 // 순서9, 받아온 테이블에서, 각컬럼의 값들을 하나씩 읽어오기.
+
                 String name = rs.getString("name");
                 String email2 = rs.getString("email");
                 String password = rs.getString("password");
                 int age = rs.getInt("age");
+                // 260127_데이터베이스버전_전환_작업_순서11-5
+                // 임시 MemberDTO에 담기.
+                dto = new MemberDTO();
+                dto.setName(name);
+                dto.setEmail(email2);
+                dto.setPassword(password);
+                dto.setAge(age);
+
                 System.out.println("검색 결과 -> 이름: " + name + ", 나이: " + age);
                 System.out.println("이메일 : " + email2);
                 System.out.println("password : " + password);
@@ -140,6 +155,8 @@ public class MemberDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        // 260127_데이터베이스버전_전환_작업_순서11-6
+        return dto;
     }
 
     // 260127_데이터베이스버전_전환_작업_순서7
@@ -247,4 +264,6 @@ public class MemberDAO {
 
         return list; // 검색된 회원 목록 반환 (없으면 빈 리스트)
     }
+
+
 }

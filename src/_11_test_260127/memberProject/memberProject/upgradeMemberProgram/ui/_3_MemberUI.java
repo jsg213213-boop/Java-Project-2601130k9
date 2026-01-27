@@ -1,13 +1,13 @@
 package _11_test_260127.memberProject.memberProject.upgradeMemberProgram.ui;
 
-import _11_test_260127.memberProject.memberProject.upgradeMemberProgram.model._3_MemberBase;
+import _11_test_260127.memberProject.memberProject.upgradeMemberProgram.dto.MemberDTO;
 import _11_test_260127.memberProject.memberProject.upgradeMemberProgram.service._3_MemberService;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
+import java.util.List;
 
 // 260127_리팩토링_코드정리_순서10
 // 화면 작업
@@ -99,7 +99,7 @@ public class _3_MemberUI extends JFrame {
     // updateButtonState 정의 가져오기
     private void updateButtonState() {
         // 서비스에서, 로그인한 유저 가져오기.
-        _3_MemberBase loggedInMember = service.getLoggedInMember();
+        MemberDTO loggedInMember = service.getLoggedInMember();
 
         if (loggedInMember != null) { // 로그인이 된 경우 -> 로그아웃 해야하고
             // 라벨 : 로그아웃이 보이면 되고
@@ -219,13 +219,13 @@ public class _3_MemberUI extends JFrame {
         displyArea.setText(""); // 최초에 항상 기존 내용 다지우고, 새로 불러오는 형식.
         printLog("===회원 목록====");
         // 서비스의 기능에서, 현재 회원 가입한 목록을 담을 Map을 불러오기.
-        Map<String, _3_MemberBase>  members = service.getMembers();
+       List<MemberDTO> members = service.getMemberList();
 
         if (members.isEmpty()) {
             printLog("가입된 회원이 없습니다.");
         } else {
             // 기존에서 사용하던 Map 순회에서, 출력.
-            for (_3_MemberBase member : members.values()) {
+            for (MemberDTO member : members) {
                 String info = String.format("이름 : %s | 이메일 : %s | 나이 : %d",
                         member.getName(), member.getEmail(), member.getAge());
                 printLog(info);
@@ -269,26 +269,20 @@ public class _3_MemberUI extends JFrame {
                 // 메모리상에 있는, members 맵에서,
                 // 비교하기, 먼저는 이메일찾고, 있다면, 패스워드 비교해서, 로그인 처리하기.
 
-                if (service.getMembers().containsKey(inputEmail)) {
-                    // 맵안에 있는 회원들중, 로그인하려는 멤버의 객체를 , 이메일로 가져오기
-                    // 키 : 이메일, 값: 회원정보가 들어있는 객체,
-                    _3_MemberBase member = service.getMembers().get(inputEmail);
-                    if (member.getPassword().equals(inputPassword)) {
-                        // 해당 이메일에, 패스워드도 일치하면, 로그인 성공,
-                        // 로그인한 유저 정보의 객체를, loggedInMember에 할당하기.
-//                        loggedInMember = member;
-                        service.login(inputEmail,inputPassword);
-                        // 성공 축하 메세지
-                        printLog(">>> 로그인 성공!!, " + member.getName() + "님 환영합니다.");
-                        // 미구현, 버튼의 로그인, 로그아웃이라는 라벨을 변경을하는 메서드
-                        updateButtonState();
-                    } else {
-                        // 260126_화면버전_기능추가_로그인_로그아웃_순서5
-                        JOptionPane.showMessageDialog(this, "패스워드가 틀렸습니다.");
-                    }
+                // service.login() 내부에서 DB 조회 및 비밀번호 비교를 모두 수행합니다.
+                String result = service.login(inputEmail, inputPassword);
+
+                if (result.equals("success")) {
+                    // 로그인 성공 시
+                    // 서비스가 이미 내부적으로 loggedInMember를 세팅해두었습니다.
+                    MemberDTO member = service.getLoggedInMember();
+
+                    printLog(">>> 로그인 성공!!, " + member.getName() + "님 환영합니다.");
+                    updateButtonState(); // 버튼 상태 갱신
                 } else {
-                    // 260126_화면버전_기능추가_로그인_로그아웃_순서6
-                    JOptionPane.showMessageDialog(this, "존재하지 않는 이메일입니다..");
+                    // 로그인 실패 시 (result 변수에 실패 사유가 들어있음)
+                    // 예: "존재하지 않는 이메일입니다." or "패스워드가 틀렸습니다."
+                    JOptionPane.showMessageDialog(this, result);
                 }
             }
         }
@@ -403,24 +397,18 @@ public class _3_MemberUI extends JFrame {
         //상태 변수 ,
         boolean isFound = false;
 
-        if (choice == 0) { // 이메일 검색
-            // 검색어를 받아서, 이메일로, members , Map의 내용을 검색.
-            if (service.getMembers().containsKey(keyword)) {
-                _3_MemberBase member = service.getMembers().get(keyword);
-                printLog("검색결과 : " + member.getName() + ", 이메일 : " + member.getEmail());
-                isFound = true;
+        List<MemberDTO> results = service.searchMembers(keyword);
+
+        // 4. 결과 출력
+        if (results.isEmpty()) {
+            printLog("검색 결과가 없습니다.");
+        } else {
+            printLog("총 " + results.size() + "명의 회원이 검색되었습니다.");
+            for (MemberDTO m : results) {
+                String info = String.format("이름 : %s | 이메일 : %s | 나이 : %d",
+                        m.getName(), m.getEmail(), m.getAge());
+                printLog(info);
             }
-        } else { // 이름 검색
-            for (_3_MemberBase member : service.getMembers().values()) {
-                if (member.getName().contains(keyword)) {
-                    printLog("검색결과 : " + member.getName() + ", 이메일 : " + member.getEmail());
-                    isFound = true;
-                }
-            }
-        }
-        // 회원이 없을 경우.
-        if (!isFound) {
-            printLog("검색 결과가 없습니다. ");
         }
 
     }
@@ -451,26 +439,37 @@ public class _3_MemberUI extends JFrame {
             // 3 비밀번호 재확인 후, 진행하기.
             String inputPassword = JOptionPane.showInputDialog(this, "비밀번호를 입력하세요:");
 
-            // 입력 비밀번호, 멤버 비밀번호가 일치한다면,
-            if(inputPassword != null && inputPassword.equals(service.getLoggedInMember().getPassword())) {
-                // 4 삭제 로직 진행.
-                String targetEmail = service.getLoggedInMember().getEmail();
-                service.getMembers().remove(targetEmail);// 맵에서 삭제 처리.
+            // 취소 버튼을 눌렀거나 입력이 없는 경우 처리
+            if (inputPassword == null || inputPassword.trim().isEmpty()) {
+                return;
+            }
 
-                // 5 파일 업데이트 , 메모리 상에서 변경된 내용 -> 파일에 업데이트
-//                saveMembers(members);
-                service.updateMember();
+            // 4. 비밀번호 검증 및 DB 삭제 요청
+            // 현재 로그인한 사람의 비밀번호와 입력한 비밀번호 비교
+            String currentPassword = service.getLoggedInMember().getPassword();
 
-                //  6 상태 초기화 (로그아웃처리)
-                printLog(">>> 회원탈퇴완료: " + targetEmail);
-//                loggedInMember = null;
-                service.logout();
+            if (inputPassword.equals(currentPassword)) {
+                String email = service.getLoggedInMember().getEmail();
+
+                // =========================================================
+                // [핵심 변경] 맵에서 remove 하는 것이 아니라, 서비스에게 탈퇴 요청
+                // =========================================================
+
+                // 서비스 내부에서 DAO를 통해 "DELETE FROM members..." 쿼리를 실행합니다.
+                // 또한 서비스 내부에서 logout() 처리도 함께 수행하도록 구성하는 것이 좋습니다.
+                service.deleteMember();
+
+                // 5. UI 결과 처리
+                printLog(">>> 회원탈퇴완료: " + email);
+
+                // 탈퇴하면 로그아웃 상태가 되므로 버튼 상태를 갱신합니다.
+                // (service.deleteMember() 안에서 logout()을 했다고 가정)
                 updateButtonState();
 
-                // 7 알림창
-                JOptionPane.showMessageDialog(this, "탈퇴 처리가 완료되었습니다. 이용해 주셔서 감사합니다.");
-            } else if (inputPassword != null) {
-                JOptionPane.showMessageDialog(this,"비밀번호가 일치하지 않습니다. ");
+                JOptionPane.showMessageDialog(this, "탈퇴 처리가 완료되었습니다.\n이용해 주셔서 감사합니다.");
+
+            } else {
+                JOptionPane.showMessageDialog(this, "비밀번호가 일치하지 않습니다.");
             }
         }
 
