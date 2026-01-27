@@ -12,7 +12,7 @@ public class _1_Insert_Ex {
         // 순서1, 드라이버 로드, 자바 -> 오라클로 쿼리 를 전달하기 위한 도구 모음집을 메모리에 로드
             Class.forName("oracle.jdbc.driver.OracleDriver");
 
-            insertMember("이상용jdbc","jdbc1@naver.com","1234",20);
+            insertMember("홍길동","hong@naver.com","1234",20);
     }
 
     // 기능 추가
